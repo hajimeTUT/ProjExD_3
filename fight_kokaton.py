@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import sys
@@ -56,6 +57,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire = (+5, 0)
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -82,6 +84,7 @@ class Bird:
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.img = __class__.imgs[tuple(sum_mv)]
+            self.dire = sum_mv
         screen.blit(self.img, self.rct)
 
 
@@ -124,10 +127,23 @@ class Beam:
         
         """
         self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), 0, 2.0) # ビーム画像Surface
+        self.vx, self.vy = bird.dire # 縦横速度
+        self.rad = math.atan2(-self.vy, self.vx)
+        self.img = pg.transform.rotozoom(self.img, math.degrees(self.rad), 2.0)
         self.rct: pg.Rect = self.img.get_rect() # ビーム画像Rect
-        self.rct.left = bird.rct.right # ビームの左座標にこうかとんの右座標を設定
-        self.rct.centery = bird.rct.centery
-        self.vx, self.vy = +5, 0 # 縦横速度
+        BEAM_DELTA = {  # 0度から反時計回りに定義
+            (+5, 0): [("left", "centery"), ("right", "centery")],  # 右
+            (+5, -5): [("left", "bottom"), ("right", "top")],  # 右上
+            (0, -5): [("centerx", "bottom"), ("centerx", "top")],  # 上
+            (-5, -5): [("right", "bottom"), ("left", "top")],  # 左上
+            (-5, 0): [("right", "centery"), ("left", "centery")],  # 左
+            (-5, +5): [("right", "top"), ("left", "bottom")],  # 左下
+            (0, +5): [("centerx", "top"), ("centerx", "bottom")],  # 下
+            (+5, +5): [("left", "top"), ("right", "bottom")],  # 右下
+        }
+        setattr(self.rct, BEAM_DELTA[(self.vx, self.vy)][0][0], getattr(bird.rct, BEAM_DELTA[(self.vx, self.vy)][1][0]))
+        setattr(self.rct, BEAM_DELTA[(self.vx, self.vy)][0][1], getattr(bird.rct, BEAM_DELTA[(self.vx, self.vy)][1][1]))
+
 
     def update(self, screen: pg.Surface):
         """
@@ -178,6 +194,7 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beam = Beam(bird)
+                print(bird.dire)
 
         screen.blit(bg_img, [0, 0])
         
