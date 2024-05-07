@@ -137,15 +137,39 @@ class Beam:
             self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
 
+class Explosion:
+    """
+    
+    """
+    def __init__(self, bomb: Bomb):
+        """
+        
+        """
+        self.img = [pg.transform.flip(pg.image.load("fig/explosion.gif"), _, _) for _ in [False, True]] # 爆発画像surface
+        self.rct: pg.Rect = self.img[0].get_rect() # 爆発画像Rect
+        self.rct.center = bomb.rct.center
+        self.life = 60
+
+    def update(self, screen: pg.Surface):
+        """
+        
+        """
+        if self.life%20 < 10:
+            screen.blit(self.img[0], self.rct)
+        else:
+            screen.blit(self.img[1], self.rct)
+        self.life -= 1
+
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((900, 400))
-    bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+    explosions = []
     beam = None
+    explosion = None
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -175,8 +199,12 @@ def main():
                     beam = None
                     bombs[i] = None
                     bird.change_img(6, screen)
+                    explosions.append(Explosion(bomb))
                     pg.display.update()
         bombs = [bomb for bomb in bombs if bomb is not None]
+        explosions = [explosion for explosion in explosions if explosion.life >= 0]
+        for explosion in explosions:
+            explosion.update(screen)
 
         if len(bombs) == 0:
             bird.change_img(6, screen)
