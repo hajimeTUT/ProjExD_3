@@ -180,6 +180,10 @@ def main():
 
         if len(bombs) == 0:
             bird.change_img(6, screen)
+            fonto = pg.font.Font(None, 80)
+            txt = fonto.render("Game Clear", True, (255, 255, 0))
+            screen.blit(txt, [WIDTH/2-150, HEIGHT/2])
+            pg.display.update()
             time.sleep(2)
             return
 
