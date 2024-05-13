@@ -118,6 +118,7 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+
 class Beam:
     """
     
@@ -153,6 +154,7 @@ class Beam:
             self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
 
+
 class Explosion:
     """
     
@@ -177,6 +179,21 @@ class Explosion:
         self.life -= 1
 
 
+class Score:
+    def __init__(self):
+        self.text = "スコア："
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (0, 0, 255)
+        self.score = 0
+        self.img = self.fonto.render(self.text + str(self.score), 0, self.color)
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT-50)
+
+    def update(self, screen: pg.Surface):
+        self.img = self.fonto.render(self.text + str(self.score), 0, self.color)
+        screen.blit(self.img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -186,6 +203,7 @@ def main():
     explosions = []
     beam = None
     explosion = None
+    score = Score()
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -216,12 +234,15 @@ def main():
                     bombs[i] = None
                     bird.change_img(6, screen)
                     explosions.append(Explosion(bomb))
+                    score.score += 1
                     pg.display.update()
         bombs = [bomb for bomb in bombs if bomb is not None]
         explosions = [explosion for explosion in explosions if explosion.life >= 0]
         for explosion in explosions:
             explosion.update(screen)
 
+        score.update(screen)
+        
         if len(bombs) == 0:
             bird.change_img(6, screen)
             fonto = pg.font.Font(None, 80)
