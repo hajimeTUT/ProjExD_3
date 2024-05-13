@@ -193,7 +193,6 @@ class Score:
         self.img = self.fonto.render(self.text + str(self.score), 0, self.color)
         screen.blit(self.img, self.rct)
 
-
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -201,7 +200,7 @@ def main():
     bird = Bird((900, 400))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     explosions = []
-    beam = None
+    beams = []
     explosion = None
     score = Score()
     clock = pg.time.Clock()
@@ -211,7 +210,8 @@ def main():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beam = Beam(bird)
+                beams .append(Beam(bird))
+
 
         screen.blit(bg_img, [0, 0])
         
@@ -228,15 +228,19 @@ def main():
         
         
         for i, bomb in enumerate(bombs):
-            if beam is not None:
-                if beam.rct.colliderect(bomb.rct): # ビームと爆弾が衝突した場合
-                    beam = None
-                    bombs[i] = None
-                    bird.change_img(6, screen)
-                    explosions.append(Explosion(bomb))
-                    score.score += 1
-                    pg.display.update()
+            if len(beams) > 0:
+                for j, beam in enumerate(beams):
+                    if beam is not None and beam.rct.colliderect(bomb.rct): # ビームと爆弾が衝突した場合
+                        beams[j] = None
+                        bombs[i] = None
+                        bird.change_img(6, screen)
+                        explosions.append(Explosion(bomb))
+                        score.score += 1
+                        pg.display.update()
+                    if beam is not None and any((beam.rct.centerx < 0, beam.rct.centerx > WIDTH, beam.rct.centery < 0, beam.rct.centery > HEIGHT)):
+                        beams[i] = None
         bombs = [bomb for bomb in bombs if bomb is not None]
+        beams = [beam for beam in beams if beam is not None]
         explosions = [explosion for explosion in explosions if explosion.life >= 0]
         for explosion in explosions:
             explosion.update(screen)
@@ -257,8 +261,9 @@ def main():
         
         for bomb in bombs:
             bomb.update(screen)
-        if beam is not None:
-            beam.update(screen)
+        if len(beams) > 0:
+            for beam in beams:
+                beam.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
